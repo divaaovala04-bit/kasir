@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistem Kasir</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-title">SISTEM KASIR</div>
+        <div class="brand-sub">Dashboard • Inventory • Kasir • Laporan (client-side)</div>
+      </div>
+
+      <nav class="tabs" aria-label="Navigasi">
+        <button class="tab is-active" data-tab="dashboard" type="button">Dashboard</button>
+        <button class="tab" data-tab="inventory" type="button">Inventory</button>
+        <button class="tab" data-tab="kasir" type="button">Kasir</button>
+        <button class="tab" data-tab="laporan" type="button">Laporan</button>
+      </nav>
+    </header>
+
+    <main class="content">
+      <!-- DASHBOARD -->
+      <section class="view is-active" data-view="dashboard">
+        <div class="grid-3">
+          <div class="stat-card">
+            <div class="stat-label">Total Produk</div>
+            <div class="stat-value" id="statTotalProducts">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Item Terjual</div>
+            <div class="stat-value" id="statSoldQty">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Pendapatan</div>
+            <div class="stat-value" id="statRevenue">Rp 0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title-row">
+            <h2 class="panel-title">Ringkasan Cepat</h2>
+          </div>
+
+          <div class="split">
+            <div>
+              <h3 class="h3">Aksi Cepat</h3>
+              <div class="quick-actions">
+                <button class="btn btn-primary" type="button" data-go="kasir">Buka Halaman Kasir</button>
+                <button class="btn btn-ghost" type="button" data-go="inventory">Kelola Inventory</button>
+                <button class="btn btn-ghost" type="button" id="btnClearSales">Reset Data Laporan</button>
+              </div>
+              <p class="muted">Catatan: Semua transaksi tersimpan di browser (localStorage).</p>
+            </div>
+
+            <div>
+              <h3 class="h3">Barang Terlaris</h3>
+              <div id="topProducts" class="top-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- INVENTORY -->
+      <section class="view" data-view="inventory">
+        <div class="panel">
+          <div class="panel-title-row">
+            <h2 class="panel-title">Inventory Produk</h2>
+            <div class="panel-actions">
+              <button class="btn btn-ghost" type="button" id="btnSeedInventory">Isi Contoh</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label class="field">
+              <span>Cari Produk</span>
+              <input id="invSearch" type="text" placeholder="nama / barcode" />
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label class="field">
+              <span>Tambah Produk Baru</span>
+              <div class="form-inline">
+                <input id="invNewName" type="text" placeholder="Nama" />
+                <input id="invNewBarcode" type="text" placeholder="Barcode" />
+                <input id="invNewPrice" type="text" inputmode="numeric" placeholder="Harga" />
+                <input id="invNewStock" type="text" inputmode="numeric" placeholder="Stok" />
+                <button class="btn btn-success" type="button" id="btnAddProduct">Tambah</button>
+              </div>
+            </label>
+          </div>
+
+          <div class="table-wrap">
+            <table class="table" aria-label="Inventory">
+              <thead>
+                <tr>
+                  <th>Produk</th>
+                  <th>Barcode</th>
+                  <th class="right">Harga</th>
+                  <th class="right">Stok</th>
+                  <th class="right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="invBody">
+                <!-- rows -->
+              </tbody>
+            </table>
+          </div>
+
+          <p class="hint muted">Gunakan tombol +stok / -stok untuk penyesuaian cepat.</p>
+        </div>
+      </section>
+
+      <!-- KASIR -->
+      <section class="view" data-view="kasir">
+        <div class="layout-grid">
+          <section class="panel">
+            <div class="panel-title-row">
+              <h2 class="panel-title">Kasir</h2>
+              <div class="panel-actions">
+                <button class="btn btn-ghost" type="button" id="btnClear">Reset Keranjang</button>
+                <button class="btn btn-primary" type="button" id="btnPrint">Cetak Struk</button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="split-form">
+                <label class="field">
+                  <span>Kode / Barcode</span>
+                  <input id="barcodeInput" type="text" inputmode="numeric" autocomplete="off" placeholder="Scan di sini" />
+                </label>
+                <button class="btn btn-secondary" type="button" id="btnAddManual">Tambah</button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label class="field">
+                <span>Cari (nama)</span>
+                <input id="searchInput" type="text" placeholder="Ketik nama..." />
+              </label>
+            </div>
+
+            <div class="list" role="region" aria-label="Hasil produk">
+              <div id="productList" class="list-inner"></div>
+            </div>
+
+            <p class="hint muted">Tips: fokus ke kolom barcode agar scanner langsung menambah.</p>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title-row">
+              <h2 class="panel-title">Keranjang</h2>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table" aria-label="Keranjang">
+                <thead>
+                  <tr>
+                    <th>Barang</th>
+                    <th class="right">Harga</th>
+                    <th class="right">Qty</th>
+                    <th class="right">Subtotal</th>
+                    <th class="right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="cartBody"></tbody>
+              </table>
+            </div>
+
+            <div class="totals">
+              <div class="totals-row">
+                <span>Total Qty</span>
+                <strong id="totalQty">0</strong>
+              </div>
+              <div class="totals-row totals-grand">
+                <span>Total</span>
+                <strong id="grandTotal">Rp 0</strong>
+              </div>
+            </div>
+
+            <div class="payment">
+              <h3 class="h3">Pembayaran</h3>
+              <div class="form-row">
+                <label class="field">
+                  <span>Uang Masuk</span>
+                  <input id="cashInput" type="text" inputmode="numeric" placeholder="Contoh: 50000" />
+                </label>
+              </div>
+              <div class="summary-box">
+                <div class="summary-row">
+                  <span>Kembalian</span>
+                  <strong id="changeAmount" class="change">Rp 0</strong>
+                </div>
+              </div>
+              <div class="pay-actions">
+                <button class="btn btn-success" type="button" id="btnPay">Bayar</button>
+                <button class="btn btn-ghost" type="button" id="btnRefund">Batal / Reset Struk</button>
+              </div>
+              <p id="status" class="status" aria-live="polite"></p>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- LAPORAN -->
+      <section class="view" data-view="laporan">
+        <div class="panel">
+          <div class="panel-title-row">
+            <h2 class="panel-title">Laporan Transaksi</h2>
+          </div>
+
+          <div class="table-wrap">
+            <table class="table" aria-label="Laporan">
+              <thead>
+                <tr>
+                  <th>Invoice</th>
+                  <th class="right">Tanggal</th>
+                  <th class="right">Item</th>
+                  <th class="right">Total</th>
+                  <th class="right">Kas</th>
+                  <th class="right">Kembalian</th>
+                </tr>
+              </thead>
+              <tbody id="salesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- STRUK -->
+      <section class="receipt" aria-hidden="true">
+        <div class="receipt-paper">
+          <div class="receipt-header">
+            <div class="shop-name">TOKO MAJU JAYA</div>
+            <div class="shop-sub">Jl. Contoh No. 123 • Telp: 0812-3456-7890</div>
+            <div class="receipt-meta" id="receiptMeta"></div>
+          </div>
+          <div class="receipt-items" id="receiptItems"></div>
+          <div class="receipt-totals">
+            <div class="line"><span>Total</span><span id="receiptTotal">Rp 0</span></div>
+            <div class="line"><span>Bayar</span><span id="receiptCash">Rp 0</span></div>
+            <div class="line"><span>Kembalian</span><span id="receiptChange">Rp 0</span></div>
+          </div>
+          <div class="receipt-footer">
+            <div class="muted">Terima kasih telah berbelanja.</div>
+            <div class="muted">Dicetak: <span id="receiptPrintedAt"></span></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./script.js" defer></script>
+</body>
+</html>
+
